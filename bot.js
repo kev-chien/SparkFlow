@@ -46,3 +46,16 @@ controller.on('direct_mention', function(bot, message) {
 controller.on('direct_message', function(bot, message) {
     bot.reply(message, 'I got your private message. You said, "' + message.text + '"');
 });
+
+var breakTimes = listUpcomingEvents();
+var dateTime = require('node-datetime');
+var isBreak = 0;
+var position = 0;
+
+if (dateTime > breakTimes.get(position).get(0)) {
+    isBreak = 1;
+
+} else if (dateTime > breakTimes.get(position).get(1)) {
+    isBreak = 0;
+    position += 1;
+}
