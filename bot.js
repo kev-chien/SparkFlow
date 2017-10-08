@@ -1,11 +1,16 @@
 var personId = "";
 var checkTimeToWork = "";
-var working = false;
-var on = false;
+var started = false; // bot has been requested to start tracking free time
+var breakTime = false; // currently in free time
+// var working = false; // currently working
+var timerCheckTimeForWork = null;  // refers to a timer
+var messageMem = null;
+var botMem = null;
 
 var env = require('node-env-file');
 env(__dirname + '/.env');
 
+var _ = require('underscore');
 
 if (!process.env.access_token) {
     console.log('Error: Specify a Cisco Spark access_token in environment.');
@@ -43,12 +48,28 @@ controller.setupWebserver(process.env.PORT || 3000, function(err, webserver) {
 /* first initiation by user */
 controller.hears('start', 'direct_message,direct_mention', function(bot, message) {
     bot.reply(message, 'Hi, wait a second for me to pull your Google Calendar data.');
-    var checkTimeToWork = setInterval(function () {
-        bot.reply(message, 'its time to work');
-    }, 5000);
+    started = true;
+    timerCheckTimeForWork = setInterval(_.bind(checkForTimeForWork, this, bot, message), 1000);
+});
 
+var checkForTimeForWork = function (bot, message) {
+    /* Lawrence's checking function goes here */
+    bot.reply(message, 'I think its time to work');
+}
+
+
+
+controller.hears('cancel', 'direct_message,direct_mention', function(bot, message) {
+    if (checkTimeForWork) {
+        console.log(checkTimeForWork);
+        clearInterval(checkTimeForWork);
+        checkTimeForWork = null;
+        bot.reply(message, 'worktime canceled');
+    }
 });
 
 controller.hears('hello', 'direct_message,direct_mention', function(bot, message) {
     bot.reply(message, 'Hi');
 });
+
+
