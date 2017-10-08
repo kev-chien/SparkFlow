@@ -1,6 +1,16 @@
+var personId = "";
+var checkTimeToWork = "";
+var started = false; // bot has been requested to start tracking free time
+var breakTime = false; // currently in free time
+// var working = false; // currently working
+var timerCheckTimeForWork = null;  // refers to a timer
+var messageMem = null;
+var botMem = null;
+
 var env = require('node-env-file');
 env(__dirname + '/.env');
 
+var _ = require('underscore');
 
 if (!process.env.access_token) {
     console.log('Error: Specify a Cisco Spark access_token in environment.');
@@ -35,27 +45,43 @@ controller.setupWebserver(process.env.PORT || 3000, function(err, webserver) {
     });
 });
 
+/* first initiation by user */
+controller.hears('start', 'direct_message,direct_mention', function(bot, message) {
+    bot.reply(message, 'Hi, wait a second for me to pull your Google Calendar data.');
+    started = true;
+    timerCheckTimeForWork = setInterval(_.bind(checkForTimeForWork, this, bot, message), 1000);
+});
+
+var checkForTimeForWork = function (bot, message) {
+    /* Lawrence's checking function goes here */
+    bot.reply(message, 'I think its time to work');
+
+    var breakTimes = listUpcomingEvents();
+    var dateTime = require('node-datetime');
+    var isBreak = 0;
+    var position = 0;
+
+    if (dateTime > breakTimes.get(position).get(0)) {
+        isBreak = 1;
+
+    } else if (dateTime > breakTimes.get(position).get(1)) {
+        isBreak = 0;
+        position += 1;
+    }
+}
+
+
+
+controller.hears('cancel', 'direct_message,direct_mention', function(bot, message) {
+    if (checkTimeForWork) {
+        console.log(checkTimeForWork);
+        clearInterval(checkTimeForWork);
+        checkTimeForWork = null;
+        bot.reply(message, 'worktime canceled');
+    }
+});
+
 controller.hears('hello', 'direct_message,direct_mention', function(bot, message) {
     bot.reply(message, 'Hi');
 });
 
-controller.on('direct_mention', function(bot, message) {
-    bot.reply(message, 'You mentioned me and said, "' + message.text + '"');
-});
-
-controller.on('direct_message', function(bot, message) {
-    bot.reply(message, 'I got your private message. You said, "' + message.text + '"');
-});
-
-var breakTimes = listUpcomingEvents();
-var dateTime = require('node-datetime');
-var isBreak = 0;
-var position = 0;
-
-if (dateTime > breakTimes.get(position).get(0)) {
-    isBreak = 1;
-
-} else if (dateTime > breakTimes.get(position).get(1)) {
-    isBreak = 0;
-    position += 1;
-}
