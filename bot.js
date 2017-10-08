@@ -1,4 +1,7 @@
 var personId = "";
+var checkTimeToWork = "";
+var working = false;
+var on = false;
 
 var env = require('node-env-file');
 env(__dirname + '/.env');
@@ -40,13 +43,12 @@ controller.setupWebserver(process.env.PORT || 3000, function(err, webserver) {
 /* first initiation by user */
 controller.hears('start', 'direct_message,direct_mention', function(bot, message) {
     bot.reply(message, 'Hi, wait a second for me to pull your Google Calendar data.');
-    personId = message.original_message.actorId;
+    var checkTimeToWork = setInterval(function () {
+        bot.reply(message, 'its time to work');
+    }, 5000);
+
 });
 
 controller.hears('hello', 'direct_message,direct_mention', function(bot, message) {
     bot.reply(message, 'Hi');
 });
-
-setInterval(function () {
-    bot.say('hello', personId);
-}, 5000)
