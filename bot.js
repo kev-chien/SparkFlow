@@ -1,3 +1,5 @@
+var personId = "";
+
 var env = require('node-env-file');
 env(__dirname + '/.env');
 
@@ -35,14 +37,16 @@ controller.setupWebserver(process.env.PORT || 3000, function(err, webserver) {
     });
 });
 
+/* first initiation by user */
+controller.hears('start', 'direct_message,direct_mention', function(bot, message) {
+    bot.reply(message, 'Hi, wait a second for me to pull your Google Calendar data.');
+    personId = message.original_message.actorId;
+});
+
 controller.hears('hello', 'direct_message,direct_mention', function(bot, message) {
     bot.reply(message, 'Hi');
 });
 
-controller.on('direct_mention', function(bot, message) {
-    bot.reply(message, 'You mentioned me and said, "' + message.text + '"');
-});
-
-controller.on('direct_message', function(bot, message) {
-    bot.reply(message, 'I got your private message. You said, "' + message.text + '"');
-});
+setInterval(function () {
+    bot.say('hello', personId);
+}, 5000)
